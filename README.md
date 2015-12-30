@@ -1,7 +1,7 @@
 # osxlockdown
 osxlockdown was built to audit, and remediate, security configuration settings on OS X 10.11 (El Capitan).  
 
-This checks and flips various configuration settings.  This is a compilation of numerous resources listed in the Resources section which could be converted to bash scripts.  This is different than those resources in that instead of requiring the user to read a 100+ page doc, click through numerous GUIs, and try to decide if some esoteric output is good or bad, this tool combines all the steps into a single command. This tool is focused on enterprise deployments of OSX with regard to what it does, but made to be usable for stand-alone home users as well.
+This checks and flips various configuration settings. Many are simply stripping out features to reduce the attack surface.  You may not like this.  This is a compilation of numerous resources listed in the Resources section which could be converted to bash scripts.  This is different than those resources in that instead of requiring the user to read a 100+ page doc, click through numerous GUIs, and try to decide if some esoteric output is good or bad, this tool combines all the steps into a single command. This tool is focused on enterprise deployments of OSX with regard to what it does, but made to be usable for stand-alone home users as well.
 
 Running the command by itself will tell you which audit checks passed and failed.  Adding the `--remediate` flag will fix the problems identified.  The commands.json file may be edited to disable certain rules by setting `enabled` to `false`.
 
@@ -73,12 +73,13 @@ This project pulled from numerous resources including:
 - The IRS Safeguard Computer Security Evaluation Matrix (SCSEM) [safeguards-scsem_MacOSX10.8.xlsx](https://www.irs.gov/pub/irs-utl/safeguards-scsem_MacOSX10.8.xlsx)
 - [CIS Apple OSX 10.10 Benchmark](https://benchmarks.cisecurity.org/tools2/osx/CIS_Apple_OSX_10.10_Benchmark_v1.0.0.pdf)
 - Articles from https://derflounder.wordpress.com/
+- Apple's [Mac OS X Security Configuration For Mac OS X Version 10.6 Snow Leopard](https://www.apple.com/support/security/guides/docs/SnowLeopard_Security_Config_v10.6.pdf)
 
 
 Limitations
 ===========
 
-- Some attempts have been made to check for things that a user likely would never enable anyway, but if they did would make the system insecure.  However, it is impossible to check all such possibilities.
+- Some attempts have been made to check for things that a user likely would never enable anyway, but if they did would make the system insecure.  However, it is impossible to check all such possibilities, and this is in general not my goal.
 - Some security auditing requires manual review, such as what apps should have firewall exceptions, or permissions on files and folders.  For such auditing, no rules have been created.
 - File Vault (full disk encryption) is tested for, but can not be remediated because user involvement is required to write down the recovery key.
 - Rules related to creating audit logs have not been created.
@@ -89,4 +90,8 @@ FAQ
 
 - *Why isn't this just a bash script, or python code? Why would anyone write a Go wrapper around bash scripts within a json file? Why isn't this an ansible|puppet script?*
     - This seemed like the cleanest solution for my needs.
+- *Why are you disabling X?*
+    - osxlockdown minimizes the features of the OS as much as possible, with the expectation that this will reduce it's attack's surface.  If it's not needed, throw it out.  Some people will not like some of the features I disable.
+- *Why are you disabling IPv6?*
+    - The NSA, DISA, and Apple themselves all recommend disabling IPv6 for maximum security.  In Apple's security guide, they state "If your organization’s network cannot use or does not require IPv6, turn it off."  Apple and the NSA's guidance are for 10.6 (from 2009) so perhaps this was fear at the time that it was too new.  However, again, my goal is to reduce the attack surface. 
  
