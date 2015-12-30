@@ -141,7 +141,7 @@ func main() {
 
             result := RunCommand(checkCommand)
             
-            resultText := "PASSED"
+            resultText := "\033[32mPASSED\033[39m"
             if !result {
                 // Audit failed, check if we can remediate
                 if *remediate && AllowRemediation(rule) {
@@ -151,13 +151,13 @@ func main() {
                     // Check our fix worked
                     result = RunCommand(checkCommand)
                     if result {
-                        resultText = "FIXED "
+                        resultText = "\033[34mFIXED \033[39m"
                     }
                 }
 
                 if !result {
                     failCount++
-                    resultText = "FAILED"
+                    resultText = "\033[31mFAILED\033[39m"
                 }
             }
 
