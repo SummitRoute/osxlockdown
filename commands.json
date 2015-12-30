@@ -117,6 +117,18 @@
         "enabled": true
     },
     {
+        "title": "Destroy File Vault Key when going to standby",
+        "check_command": "pmset -g | grep DestroyFVKeyOnStandby | grep 1",
+        "fix_command": "sudo pmset -a destroyfvkeyonstandby 1",
+        "enabled": true
+    },
+    {
+        "title": "Enable hibernation mode (no memory power on sleep)",
+        "check_command": "pmset -g | grep hibernatemode | grep 25",
+        "fix_command": "sudo pmset -a hibernatemode 25",
+        "enabled": true
+    },
+    {
         "title": "Enable Gatekeeper",
         "check_command": "spctl --status | grep \"assessments enabled\"",
         "fix_command": "spctl --master-enable",
