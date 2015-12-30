@@ -62,14 +62,14 @@
     },
     {
         "title": "Disable Remote Apple Events",
-        "check_command": "systemsetup -getremoteappleevents | grep \"Remote Apple Events: Off\"",
-        "fix_command": "systemsetup -setremoteappleevents off",
+        "check_command": "sudo systemsetup -getremoteappleevents | grep \"Remote Apple Events: Off\"",
+        "fix_command": "sudo systemsetup -setremoteappleevents off",
         "enabled": true
     },
     {
         "title": "Disable Remote Login",
-        "check_command": "systemsetup -getremotelogin | grep \"Remote Login: Off\"",
-        "fix_command": "systemsetup -f -setremotelogin off",
+        "check_command": "sudo systemsetup -getremotelogin | grep \"Remote Login: Off\"",
+        "fix_command": "sudo systemsetup -f -setremotelogin off",
         "enabled": true
     },
     {
@@ -93,8 +93,8 @@
     },
     {
         "title": "Disable Wake on Network Access",
-        "check_command": "systemsetup getwakeonnetworkaccess | grep \"Wake On Network Access: Off\"",
-        "fix_command": "systemsetup -setwakeonnetworkaccess off",
+        "check_command": "sudo systemsetup getwakeonnetworkaccess | grep \"Wake On Network Access: Off\"",
+        "fix_command": "sudo systemsetup -setwakeonnetworkaccess off",
         "enabled": true
     },
     {
