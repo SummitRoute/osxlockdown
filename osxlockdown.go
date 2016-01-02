@@ -12,6 +12,9 @@ import (
 	"time"
 )
 
+// Version of osxlockdown
+var Version = "0.9" 
+
 // ReadFile takes a relative path and returns the bytes in that file
 func ReadFile(filename string) (data []byte, err error) {
 	path, err := filepath.Abs(filename)
@@ -170,6 +173,7 @@ func main() {
 	// Print summary
 	if !*hideSummary {
 		fmt.Printf("-------------------------------------------------------------------------------\n")
+        fmt.Printf("osxlockdown %s\n", Version)
 		t := time.Now()
 		fmt.Printf("Date: %s\n", t.Format("2006-01-02T15:04:05-07:00"))
 		sysinfo := GetSystemInfo()
