@@ -13,7 +13,7 @@
     },
     {
         "title": "Disable Bluetooth",
-        "check_command": "defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState",
+        "check_command": "defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState | grep 0",
         "fix_command": "sudo defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 0 &&  sudo killall -HUP blued",
         "enabled": true
     },
@@ -50,7 +50,7 @@
     },
     {
         "title": "Require a password to wake the computer from sleep or screen saver",
-        "check_command": "defaults read com.apple.screensaver askForPassword | grep \"1\"",
+        "check_command": "defaults read com.apple.screensaver askForPassword | grep 1",
         "fix_command": "defaults write com.apple.screensaver askForPassword -int 1",
         "enabled": true
     },
