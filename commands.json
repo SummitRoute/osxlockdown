@@ -166,12 +166,6 @@
         "enabled": true
     },
     {
-        "title": "Complex passwords required",
-        "check_command": "pwpolicy -getglobalpolicy | tr \" \" \"\\n\" | grep requiresSymbol",
-        "fix_command": " pwpolicy -setglobalpolicy \"maxFailedLoginAttempts=5 minChars=15 requiresNumeric=1 requiresAlpha=1 requiresSymbol=1\"",
-        "enabled": true
-    },
-    {
         "title": "Disable IPv6",
         "check_command": "networksetup -listallnetworkservices | while read i; do SUPPORT=$(networksetup -getinfo \"$i\" | grep \"IPv6: Automatic\") && if [ -n \"$SUPPORT\" ]; then exit 1; fi; done; exit 0",
         "fix_command": "networksetup -listallnetworkservices | while read i; do SUPPORT=$(networksetup -getinfo \"$i\" | grep \"IPv6: Automatic\") && if [ -n \"$SUPPORT\" ]; then networksetup -setv6off \"$i\"; fi; done;",
