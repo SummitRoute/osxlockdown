@@ -30,7 +30,7 @@
         "enabled": true
     },
     {
-        "title": "Enable \"Set time and date automatically\"",
+        "title": "Set time and date automatically",
         "check_command": "sudo systemsetup getusingnetworktime | grep 'Network Time: On'",
         "fix_command": "sudo systemsetup setusingnetworktime on",
         "enabled": true
