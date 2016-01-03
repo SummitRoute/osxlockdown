@@ -108,6 +108,6 @@ FAQ for specific features
 -------------------------
 - *Why are you disabling IPv6?*
     - The NSA, DISA, and Apple themselves all recommend disabling IPv6 for maximum security.  In Apple's security guide, they state "If your organization’s network cannot use or does not require IPv6, turn it off."  Apple and the NSA's guidance are for 10.6 (from 2009) so perhaps this was fear at the time that it was too new.  However, again, my goal is to reduce the attack surface. 
- - *Why are you crippling Safari?*
+- *Why are you crippling Safari?*
     - I personally run Chrome and I cripple it in the same way I am crippling Safari here.  I do believe Chrome is more secure though.  One reason is they build most of the main components Safari is made from anyway, so they have more expertise with it.  Another reason is they have discovered more security problems than Safari's team has, for example, they [detected](https://googleonlinesecurity.blogspot.com/2011/08/update-on-attempted-man-in-middle.html) Diginotar had been compromised and had issued a certificate to MiTM users.
  
