@@ -184,5 +184,12 @@
         "fix_command": "defaults write com.apple.Safari WebKitOmitPDFSupport -bool YES && defaults write com.apple.Safari WebKitJavaScriptEnabled -bool FALSE && defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaScriptEnabled -bool FALSE",
         "comment": "I 'secure' safari by removing javascript and PDF support. Advanced users won't use Safari anyway and novices will be persuaded to use Chrome or Firefox",
         "enabled": true
+    },
+    {
+        "title": "Disable automatic loading of remote content by Mail.app",
+        "check_command": "defaults read com.apple.mail-shared DisableURLLoading | grep 1",
+        "fix_command": "defaults write com.apple.mail-shared DisableURLLoading -bool true",
+        "comment": "I improve security of OSX's Mail app by disabling automatic loading of remote content in opened emails.",
+        "enabled": true
     }
 ]
