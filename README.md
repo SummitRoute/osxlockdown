@@ -21,14 +21,14 @@ Usage
 Run `sudo ./osxlockdown` to check security settings. 
 Run `sudo ./osxlockdown --remediate` to fix them.
 
-The commands.json file may be edited to disable certain rules by setting `enabled` to `false`.
+The commands.yaml file may be edited to disable certain rules by setting `enabled` to `false`.
 
 Available command-line options:
 
 - `--remediate`: Apply fixes to the problems found. By default the tool only audits for problems.
 - `--hide_summary`: Hides the summary output the end.
 - `--hide_passes`: Only show issues that failed the audit.
-- `--commands_file <filename>`: Change the location of the commands file instead of the default `commands.json` in the current directory.
+- `--commands_file <filename>`: Change the location of the commands file instead of the default `commands.yaml` in the current directory.
 
 Sample output
 -------------
@@ -95,7 +95,7 @@ Limitations
 FAQ
 ===
 
-- *Why isn't this just a bash script, or python code? Why would anyone write a Go wrapper around bash scripts within a json file? Why isn't this an ansible|puppet script?*
+- *Why isn't this just a bash script, or python code? Why would anyone write a Go wrapper around bash scripts within a yaml file? Why isn't this an ansible|puppet script?*
     - This seemed like the cleanest solution for my needs.
 - *I locked myself out. What now?*
     - An earlier release of osxlockdown set a flag to lock users out if they entered an incorrect password more than 5 times on login. This is not good for single-user systems and I have since removed the password related policy rule.  To remove all password related policies you can run `pwpolicy clearaccountpolicies`.  To gain access again, follow the instructions here: https://support.apple.com/en-us/HT203114 
