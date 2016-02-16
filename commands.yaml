@@ -249,3 +249,10 @@
     defaults write com.apple.mail-shared DisableURLLoading -bool true
   comment: "I improve security of OSX's Mail app by disabling automatic loading of remote content in opened emails. TODO: This needs to be done per user."
   enabled: true
+
+
+- title: "Verify no HTTP update URLs for Sparkle Updater"
+  check_command: |
+    for i in /Applications/*/Contents/Info.plist; do URL=$(defaults read "$i" SUFeedURL 2>/dev/null | grep "http://"); if [ -n "$URL" ]; then exit 1; fi; done; exit 0
+  comment: "For more details see https://vulnsec.com/2016/osx-apps-vulnerabilities/"
+  enabled: true
