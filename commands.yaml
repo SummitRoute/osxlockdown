@@ -1,0 +1,251 @@
+- title: "Verify all application software is current"
+  check_command: |
+    LASTUPDATE=$(sudo defaults read /Library/Preferences/com.apple.SoftwareUpdate | grep LastSuccessfulDate | sed -e 's@^.* "\([0-9\\-]*\) .*$@\1@'); if [ "$LASTUPDATE" = "$(date +%Y-%m-%d)" ];then exit 0; fi; exit 1
+  fix_command: |
+    sudo softwareupdate -i -a
+  enabled: true
+
+
+- title: "Enable Auto Update"
+  check_command: |
+    sudo softwareupdate --schedule | grep 'Automatic check is on'
+  fix_command: |
+    sudo softwareupdate --schedule on
+  enabled: true
+
+
+- title: "Disable Bluetooth"
+  check_command: |
+    defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState | grep 0
+  fix_command: |
+    sudo defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 0 &&  sudo killall -HUP blued
+  enabled: true
+
+
+- title: "Disable infrared receiver"
+  check_command: |
+    defaults read /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled | grep 0
+  fix_command: |
+    defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -int 0
+  enabled: true
+
+
+- title: "Disable AirDrop"
+  check_command: |
+    defaults read com.apple.NetworkBrowser DisableAirDrop | grep 1
+  fix_command: |
+    defaults write com.apple.NetworkBrowser DisableAirDrop -bool YES
+  enabled: true
+
+
+- title: "Set time and date automatically"
+  check_command: |
+    sudo systemsetup getusingnetworktime | grep 'Network Time: On'
+  fix_command: |
+    sudo systemsetup setusingnetworktime on
+  enabled: true
+
+
+- title: "Set an inactivity interval of 10 minutes or less for the screen saver"
+  check_command: |
+    UUID=`ioreg -rd1 -c IOPlatformExpertDevice | grep "IOPlatformUUID" | sed -e 's/^.*"\(.*\)"$/\1/'`; for i in $(find /Users -type d -maxdepth 1); do PREF=$i/Library/Preferences/ByHost/com.apple.screensaver.$UUID; if [ -e $PREF.plist ]; then TIMEOUT=$(defaults read $PREF.plist idleTime) && if [ $TIMEOUT -eq 0 ] || [ $TIMEOUT -gt 600 ]; then exit 1; fi; fi; done; exit 0
+  comment: "This checks the screensaver setting for each user"
+  fix_command: |
+    UUID=`ioreg -rd1 -c IOPlatformExpertDevice | grep "IOPlatformUUID" | sed -e 's/^.*"\(.*\)"$/\1/'`; for i in $(find /Users -type d -maxdepth 1); do PREF=$i/Library/Preferences/ByHost/com.apple.screensaver.$UUID; if [ -e $PREF.plist ]; then defaults -currentHost write $PREF.plist idleTime -int 600; fi; done
+  enabled: true
+
+
+- title: "Enable secure screen saver corners"
+  check_command: |
+    for i in $(find /Users -type d -maxdepth 1); do PREF=$i/Library/Preferences/com.apple.dock.plist; if [ -e $PREF ]; then CORNER=$(defaults read $PREF | grep corner | grep 6) && if [ -n "$CORNER" ]; then exit 1; fi; fi; done; exit 0
+  fix_command: |
+    for i in $(find /Users -type d -maxdepth 1); do PREF=$i/Library/Preferences/com.apple.dock.plist; if [ -e $PREF ]; then CORNER=$(defaults read $PREF | grep corner | grep 6) && if [ -n "$CORNER" ]; then defaults write $PREF wvous-tr-corner 5; fi; fi; done;
+  enabled: true
+
+
+- title: "Require a password to wake the computer from sleep or screen saver"
+  check_command: |
+    defaults read com.apple.screensaver askForPassword | grep 1
+  fix_command: |
+    defaults write com.apple.screensaver askForPassword -int 1
+  enabled: true
+
+
+- title: "Ensure screen locks immediately when requested"
+  check_command: |
+    defaults read com.apple.screensaver askForPasswordDelay | grep "0"
+  fix_command: |
+    defaults write com.apple.screensaver askForPasswordDelay -int 0
+  enabled: true
+
+
+- title: "Disable Remote Apple Events"
+  check_command: |
+    sudo systemsetup -getremoteappleevents | grep "Remote Apple Events: Off"
+  fix_command: |
+    sudo systemsetup -setremoteappleevents off
+  enabled: true
+
+
+- title: "Disable Remote Login"
+  check_command: |
+    sudo systemsetup -getremotelogin | grep "Remote Login: Off"
+  fix_command: |
+    sudo systemsetup -f -setremotelogin off",
+  enabled: true
+
+
+- title: "Disable Internet Sharing"
+  check_command: |
+    if [ -e /Library/Preferences/SystemConfiguration/com.apple.nat ]; then NAT=$(defaults read /Library/Preferences/SystemConfiguration/com.apple.nat | grep -i "Enabled = 0") && if [ -n "$NAT" ]; then exit 1; fi; fi; exit 0
+  fix_command: |
+    defaults write /Library/Preferences/SystemConfiguration/com.apple.nat NAT -dict-add Enabled -int 0
+  comment: "TODO: I'm not sure if this fix actually works since I don't have Internet Sharing enabled anywhere to test"
+  enabled: true
+
+
+- title: "Disable Screen Sharing"
+  check_command: |
+    if [ -e /System/Library/LaunchDaemons/com.apple.screensharing.plist ]; then STATUS=$(launchctl load /System/Library/LaunchDaemons/com.apple.screensharing.plist | grep -v "Service is disabled") && if [ -n "$STATUS" ]; then exit 1; fi; fi; exit 0
+  fix_command: |
+    launchctl unload -w /System/Library/LaunchDaemons/com.apple.screensharing.plist
+  enabled: true
+
+
+- title: "Disable Printer Sharing"
+  check_command: |
+    if [ -n "$(system_profiler SPPrintersDataType | grep Shared | grep Yes)" ]; then exit 1; fi; exit 0
+  fix_command: |
+    cupsctl --no-share-printers
+  enabled: true
+
+
+- title: "Disable Wake on Network Access"
+  check_command: |
+    sudo systemsetup getwakeonnetworkaccess | grep "Wake On Network Access: Off"
+  fix_command: |
+    sudo systemsetup -setwakeonnetworkaccess off
+  enabled: true
+
+
+- title: "Disable File Sharing"
+  check_command: |
+    if [ -n "$(launchctl list | egrep AppleFileServer)" ]; then exit 1; fi; if [ -n "$(grep -i array /Library/Preferences/SystemConfiguration/com.apple.smb.server.plist)" ]; then exit 1; fi; exit 0;
+  fix_command: |
+    launchctl unload -w /System/Library/LaunchDaemons/com.apple.AppleFileServer.plist && launchctl unload -w /System/Library/LaunchDaemons/com.apple.smbd.plist
+  enabled: true
+
+
+- title: "Disable Remote Management"
+  check_command: |
+    if [ -n "$(ps -ef | egrep "/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/MacOS/[A]RDAgent")" ]; then exit 1; fi; exit 0
+  fix_command: |
+    /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop
+  enabled: true
+
+
+- title: "Enable FileVault"
+  check_command: |
+    diskutil cs list | grep -i "Encryption Status:       Unlocked"
+  comment: "TODO: FileVault can be enabled with `fdesetup enable`, but you need to enter user creds and write down the recovery key. How to do this programmatically, or at least tell the user the steps?  See https://derflounder.wordpress.com/2013/10/22/managing-mavericks-filevault-2-with-fdesetup/"
+  enabled: true
+
+
+- title: "Destroy File Vault Key when going to standby"
+  check_command: |
+    pmset -g | grep DestroyFVKeyOnStandby | grep 1
+  fix_command: |
+    sudo pmset -a destroyfvkeyonstandby 1
+  enabled: true
+
+
+- title: "Enable hibernation mode (no memory power on sleep)"
+  check_command: |
+    pmset -g | grep hibernatemode | grep 25
+  fix_command: |
+    sudo pmset -a hibernatemode 25
+  enabled: true
+
+
+- title: "Enable Gatekeeper"
+  check_command: |
+    spctl --status | grep "assessments enabled"
+  fix_command: |
+    spctl --master-enable
+  enabled: true
+
+
+- title: "Enable Firewall"
+  check_command: |
+    test $(defaults read /Library/Preferences/com.apple.alf globalstate) -ge 1
+  fix_command: |
+    defaults write /Library/Preferences/com.apple.alf globalstate -int 1
+  enabled: true
+
+
+- title: "Enable Firewall Stealth Mode"
+  check_command: |
+    /usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep "Stealth mode enabled"
+  fix_command: |
+    /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+  enabled: true
+
+
+- title: "Disable signed apps from being auto-permitted to listen through firewall"
+  check_command: |
+    defaults read /Library/Preferences/com.apple.alf allowsignedenabled | grep 0
+  fix_command: |
+    defaults write /Library/Preferences/com.apple.alf allowsignedenabled -bool false"
+  enabled: true
+
+
+- title: "Disable iCloud drive"
+  check_command: |
+    if [ -n "$(defaults read NSGlobalDomain NSDocumentSaveNewDocumentsToCloud | grep "0")" ]; then exit 0; fi; exit 1;
+  fix_command: |
+    defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+  comment: "TODO: Disable icloud entirely. This checks if a value is not set or set to 0"
+  enabled: true
+
+
+- title: "Require an administrator password to access system-wide preferences"
+  check_command: |
+    if [ -n "$(security authorizationdb read system.preferences 2> /dev/null | grep -A1 shared | grep -E '(true|false)' | grep 'false')" ]; then exit 0; fi; exit 1
+  fix_command: |
+    security authorizationdb read system.preferences > /tmp/system.preferences.plist &&/usr/libexec/PlistBuddy -c "Set :shared false" /tmp/system.preferences.plist && security authorizationdb write system.preferences < /tmp/system.preferences.plist
+  enabled: true
+
+
+- title: "Disable IPv6"
+  check_command: |
+    networksetup -listallnetworkservices | while read i; do SUPPORT=$(networksetup -getinfo "$i" | grep "IPv6: Automatic") && if [ -n "$SUPPORT" ]; then exit 1; fi; done; exit 0
+  fix_command: |
+    networksetup -listallnetworkservices | while read i; do SUPPORT=$(networksetup -getinfo "$i" | grep "IPv6: Automatic") && if [ -n "$SUPPORT" ]; then networksetup -setv6off "$i"; fi; done;
+  enabled: true
+
+
+- title: "Disable Previews"
+  check_command: |
+    defaults read /Library/Preferences/com.apple.finder.plist | grep ShowIconThumbnails | grep 0
+  fix_command: |
+    /usr/libexec/PlistBuddy -c "Add StandardViewOptions:ColumnViewOptions:ShowIconThumbnails bool NO" "/Library/Preferences/com.apple.finder.plist" && /usr/libexec/PlistBuddy -c "Add StandardViewSettings:ListViewSettings:showIconPreview bool NO" "/Library/Preferences/com.apple.finder.plist" && /usr/libexec/PlistBuddy -c "Add StandardViewSettings:IconViewSettings:showIconPreview bool NO" "/Library/Preferences/com.apple.finder.plist" && /usr/libexec/PlistBuddy -c "Add StandardViewSettings:ExtendedListViewSettings:showIconPreview bool NO" "/Library/Preferences/com.apple.finder.plist" && /usr/libexec/PlistBuddy -c "Add StandardViewOptions:ColumnViewOptions:ShowPreview bool NO" "/Library/Preferences/com.apple.finder.plist" && /usr/libexec/PlistBuddy -c "Add StandardViewSettings:ListViewSettings:showPreview bool NO" "/Library/Preferences/com.apple.finder.plist" && /usr/libexec/PlistBuddy -c "Add StandardViewSettings:IconViewSettings:showPreview bool NO" "/Library/Preferences/com.apple.finder.plist" &&  /usr/libexec/PlistBuddy -c "Add StandardViewSettings:ExtendedListViewSettings:showPreview bool NO" "/Library/Preferences/com.apple.finder.plist"
+  comment: "TODO: I'm only checking one item, check all"
+  enabled: true
+
+
+- title: "Secure Safari by crippling it"
+  check_command: |
+    defaults read com.apple.Safari WebKitOmitPDFSupport | grep 1
+  fix_command: |
+    defaults write com.apple.Safari WebKitOmitPDFSupport -bool YES && defaults write com.apple.Safari WebKitJavaScriptEnabled -bool FALSE && defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebKit2JavaScriptEnabled -bool FALSE
+  comment: "I 'secure' safari by removing javascript and PDF support. Advanced users won't use Safari anyway and novices will be persuaded to use Chrome or Firefox.  TODO: This needs to be done per user."
+  enabled: true
+
+
+- title: "Disable automatic loading of remote content by Mail.app"
+  check_command: |
+    defaults read com.apple.mail-shared DisableURLLoading | grep 1
+  fix_command: |
+    defaults write com.apple.mail-shared DisableURLLoading -bool true
+  comment: "I improve security of OSX's Mail app by disabling automatic loading of remote content in opened emails. TODO: This needs to be done per user."
+  enabled: true

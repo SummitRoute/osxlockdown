@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+    "gopkg.in/yaml.v2"
 )
 
 // Version of osxlockdown
@@ -38,29 +38,29 @@ func ReadFile(filename string) (data []byte, err error) {
 	return data, nil
 }
 
-// ConfigRules holds our json file containing our config
+// ConfigRules holds our yaml file containing our config
 var ConfigRules ConfigRuleList
 
 // ConfigRule is a container for each individual rule
 type ConfigRule struct {
-    Title     string                   `json:"title"`
-	CheckCommand     string            `json:"check_command"`
-	FixCommand       string            `json:"fix_command"`
-	Enabled          bool              `json:"enabled"`
-	AllowRemediation *bool             `json:"allow_remediation"`
+    Title     string                   `yaml:"title"`
+	CheckCommand     string            `yaml:"check_command"`
+	FixCommand       string            `yaml:"fix_command"`
+	Enabled          bool              `yaml:"enabled"`
+	AllowRemediation *bool             `yaml:"allow_remediation"`
 }
 
 // ConfigRuleList is an array
 type ConfigRuleList []ConfigRule
 
-// ReadConfigRules reads our json file
+// ReadConfigRules reads our yaml file
 func ReadConfigRules(configFile string) error {
-	jsonFile, err := ReadFile(configFile)
+	ruleFile, err := ReadFile(configFile)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal(jsonFile, &ConfigRules)
+	err = yaml.Unmarshal(ruleFile, &ConfigRules)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func main() {
 	remediate := flag.Bool("remediate", false, "Implements fixes for failed checks. WARNING: Beware this may break things.")
 
 	var commandFile string
-	flag.StringVar(&commandFile, "commands_file", "commands.json", "JSON file containing the commands and configuration")
+	flag.StringVar(&commandFile, "commands_file", "commands.yaml", "YAML file containing the commands and configuration")
 
 	flag.Parse()
 
