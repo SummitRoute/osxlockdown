@@ -40,9 +40,9 @@
 
 - title: "Set time and date automatically"
   check_command: |
-    sudo systemsetup getusingnetworktime | grep 'Network Time: On'
+    sudo systemsetup getusingnetworktime | grep 'Network Time: Off'
   fix_command: |
-    sudo systemsetup setusingnetworktime on
+    sudo systemsetup setusingnetworktime off
   enabled: true
 
 
