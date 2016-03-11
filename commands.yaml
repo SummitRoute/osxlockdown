@@ -38,7 +38,7 @@
   enabled: true
 
 
-- title: "Set time and date automatically"
+- title: "Disable automatic setting of time and date"
   check_command: |
     sudo systemsetup getusingnetworktime | grep 'Network Time: Off'
   fix_command: |
