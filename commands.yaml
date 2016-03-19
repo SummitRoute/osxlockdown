@@ -26,7 +26,7 @@
   check_command: |
     defaults read /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled | grep 0
   fix_command: |
-    defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -int 0
+    sudo defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -int 0
   enabled: true
 
 
