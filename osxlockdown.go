@@ -113,11 +113,18 @@ func main() {
 	hideSummary := flag.Bool("hide_summary", false, "Disables printing the summary")
 	hidePasses := flag.Bool("hide_passes", false, "Disables printing the rules that passed")
 	remediate := flag.Bool("remediate", false, "Implements fixes for failed checks. WARNING: Beware this may break things.")
+	version := flag.Bool("version", false, "Prints the script's version and exits")
 
 	var commandFile string
 	flag.StringVar(&commandFile, "commands_file", "commands.yaml", "YAML file containing the commands and configuration")
 
 	flag.Parse()
+
+	// Print the script's version and exit
+	if(*version) {
+		fmt.Printf("osxlockdown %s\n", Version)
+		return
+	}
 
 	// Check OS version to make sure we will work
 	osVersion := GetCommandOutput("system_profiler SPSoftwareDataType | grep \"System Version\" | cut -d: -f2")
