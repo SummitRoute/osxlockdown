@@ -18,7 +18,7 @@
   check_command: |
     defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState | grep 0
   fix_command: |
-    sudo defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 0 &&  sudo killall -HUP blued
+    sudo defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -int 0; sudo killall -HUP blued
   enabled: true
 
 
@@ -26,13 +26,13 @@
   check_command: |
     defaults read /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled | grep 0
   fix_command: |
-    defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -int 0
+    sudo defaults write /Library/Preferences/com.apple.driver.AppleIRController DeviceEnabled -int 0
   enabled: true
 
 
 - title: "Disable AirDrop"
   check_command: |
-    defaults read com.apple.NetworkBrowser DisableAirDrop | grep 1
+    sudo defaults read com.apple.NetworkBrowser DisableAirDrop | grep 1
   fix_command: |
     defaults write com.apple.NetworkBrowser DisableAirDrop -bool YES
   enabled: true
@@ -132,7 +132,7 @@
   check_command: |
     if [ -n "$(launchctl list | egrep AppleFileServer)" ]; then exit 1; fi; if [ -n "$(grep -i array /Library/Preferences/SystemConfiguration/com.apple.smb.server.plist)" ]; then exit 1; fi; exit 0;
   fix_command: |
-    launchctl unload -w /System/Library/LaunchDaemons/com.apple.AppleFileServer.plist && launchctl unload -w /System/Library/LaunchDaemons/com.apple.smbd.plist
+    launchctl unload -w /System/Library/LaunchDaemons/com.apple.AppleFileServer.plist; launchctl unload -w /System/Library/LaunchDaemons/com.apple.smbd.plist
   enabled: true
 
 
@@ -140,7 +140,7 @@
   check_command: |
     if [ -n "$(ps -ef | egrep "/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/MacOS/[A]RDAgent")" ]; then exit 1; fi; exit 0
   fix_command: |
-    /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop
+    sudo /System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/Resources/kickstart -deactivate -stop
   enabled: true
 
 
@@ -248,6 +248,24 @@
   fix_command: |
     defaults write com.apple.mail-shared DisableURLLoading -bool true
   comment: "I improve security of OSX's Mail app by disabling automatic loading of remote content in opened emails. TODO: This needs to be done per user."
+  enabled: true
+
+
+- title: "Disable Captive Portal"
+  check_command: |
+    defaults read /Library/Preferences/SystemConfiguration/com.apple.captive.control.plist | grep "Active = 0"
+  fix_command: |
+    sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.captive.control Active -bool false
+  comment: "For more details see https://github.com/drduh/OS-X-Security-and-Privacy-Guide#captive-portal"
+  enabled: true
+
+
+- title: "Enable logging"
+  check_command: |
+    defaults read /Library/Preferences/com.apple.alf loggingenabled | grep 1
+  fix_command: |
+    sudo defaults write /Library/Preferences/com.apple.alf loggingenabled -bool true
+  comment: "In case of post-pwnege investigation or host-based log management systems"
   enabled: true
 
 
