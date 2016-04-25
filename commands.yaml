@@ -195,7 +195,7 @@
   check_command: |
     defaults read /Library/Preferences/com.apple.alf allowsignedenabled | grep 0
   fix_command: |
-    defaults write /Library/Preferences/com.apple.alf allowsignedenabled -bool false"
+    defaults write /Library/Preferences/com.apple.alf allowsignedenabled -bool false
   enabled: true
 
 
