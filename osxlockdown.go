@@ -31,6 +31,11 @@ type ConfigRule struct {
 	AllowRemediation *bool  `yaml:"allow_remediation"`
 }
 
+// ShouldRemediate returns true if the rule is allowed to be remediated
+func (c ConfigRule) ShouldRemediate() bool {
+	return c.FixCommand != "" && (c.AllowRemediation == nil || *c.AllowRemediation)
+}
+
 // ReadConfigRules reads our yaml file
 func ReadConfigRules(configFile string) ([]ConfigRule, error) {
 	ruleFile, err := ioutil.ReadFile(configFile)
@@ -80,11 +85,6 @@ func CalculateScore(ruleCount int, failCount int) int {
 		return 0
 	}
 	return int(float64(ruleCount-failCount) / float64(ruleCount) * 100.0)
-}
-
-// AllowRemediation returns true if the rule is allowed to be remediated
-func AllowRemediation(configRule ConfigRule) bool {
-	return configRule.FixCommand != "" && (configRule.AllowRemediation == nil || *configRule.AllowRemediation)
 }
 
 func main() {
@@ -141,7 +141,7 @@ func main() {
 		resultText := PASSED
 		if !result {
 			// Audit failed, check if we can remediate
-			if *remediate && AllowRemediation(rule) {
+			if *remediate && rule.ShouldRemediate() {
 				// Remediate
 				fixCommand := rule.FixCommand
 				RunCommand(fixCommand)
