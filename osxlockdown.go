@@ -117,9 +117,7 @@ func main() {
 	hidePasses := flag.Bool("hide_passes", false, "Disables printing the rules that passed")
 	remediate := flag.Bool("remediate", false, "Implements fixes for failed checks. WARNING: Beware this may break things.")
 	version := flag.Bool("version", false, "Prints the script's version and exits")
-
-	var commandFile string
-	flag.StringVar(&commandFile, "commands_file", "commands.yaml", "YAML file containing the commands and configuration")
+	commandFile := flag.String("commands_file", "commands.yaml", "YAML file containing the commands and configuration")
 
 	flag.Parse()
 
@@ -137,7 +135,7 @@ func main() {
 	}
 
 	// Read our command/config file
-	err := ReadConfigRules(commandFile)
+	err := ReadConfigRules(*commandFile)
 	if err != nil {
 		fmt.Println(err)
 		return
