@@ -15,9 +15,6 @@ import (
 // Version of osxlockdown
 var Version = "0.9"
 
-// ConfigRules holds our yaml file containing our config
-var ConfigRules ConfigRuleList
-
 // ConfigRule is a container for each individual rule
 type ConfigRule struct {
 	Title            string `yaml:"title"`
@@ -27,21 +24,19 @@ type ConfigRule struct {
 	AllowRemediation *bool  `yaml:"allow_remediation"`
 }
 
-// ConfigRuleList is an array
-type ConfigRuleList []ConfigRule
-
 // ReadConfigRules reads our yaml file
-func ReadConfigRules(configFile string) error {
+func ReadConfigRules(configFile string) ([]ConfigRule, error) {
 	ruleFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = yaml.Unmarshal(ruleFile, &ConfigRules)
+	var crs []ConfigRule
+	err = yaml.Unmarshal(ruleFile, &crs)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return crs, nil
 }
 
 // RunCommand returns true if the audit passed, or command was successful
@@ -121,7 +116,7 @@ func main() {
 	}
 
 	// Read our command/config file
-	err = ReadConfigRules(*commandFile)
+	ConfigRules, err := ReadConfigRules(*commandFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to read config file: %v\n", err)
 		return
