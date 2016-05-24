@@ -9,11 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-    "gopkg.in/yaml.v2"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Version of osxlockdown
-var Version = "0.9" 
+var Version = "0.9"
 
 // ReadFile takes a relative path and returns the bytes in that file
 func ReadFile(filename string) (data []byte, err error) {
@@ -43,11 +44,11 @@ var ConfigRules ConfigRuleList
 
 // ConfigRule is a container for each individual rule
 type ConfigRule struct {
-    Title     string                   `yaml:"title"`
-	CheckCommand     string            `yaml:"check_command"`
-	FixCommand       string            `yaml:"fix_command"`
-	Enabled          bool              `yaml:"enabled"`
-	AllowRemediation *bool             `yaml:"allow_remediation"`
+	Title            string `yaml:"title"`
+	CheckCommand     string `yaml:"check_command"`
+	FixCommand       string `yaml:"fix_command"`
+	Enabled          bool   `yaml:"enabled"`
+	AllowRemediation *bool  `yaml:"allow_remediation"`
 }
 
 // ConfigRuleList is an array
@@ -99,7 +100,9 @@ func GetSystemInfo() (sysinfo SystemInfo) {
 
 // CalculateScore returns the compliance score for this system
 func CalculateScore(ruleCount int, failCount int) int {
-    if ruleCount == 0 { return 0}
+	if ruleCount == 0 {
+		return 0
+	}
 	return int(float64(ruleCount-failCount) / float64(ruleCount) * 100.0)
 }
 
@@ -121,7 +124,7 @@ func main() {
 	flag.Parse()
 
 	// Print the script's version and exit
-	if(*version) {
+	if *version {
 		fmt.Printf("osxlockdown %s\n", Version)
 		return
 	}
@@ -144,49 +147,49 @@ func main() {
 	ruleCount := 0
 	failCount := 0
 
-    for _, rule := range ConfigRules {
-        if rule.Enabled {
-            checkCommand := rule.CheckCommand
-            ruleCount++
+	for _, rule := range ConfigRules {
+		if rule.Enabled {
+			checkCommand := rule.CheckCommand
+			ruleCount++
 
-            result := RunCommand(checkCommand)
-            
-            resultText := "\033[32mPASSED\033[39m"
-            if !result {
-                // Audit failed, check if we can remediate
-                if *remediate && AllowRemediation(rule) {
-                    // Remediate
-                    fixCommand := rule.FixCommand
-                    RunCommand(fixCommand)
-                    // Check our fix worked
-                    result = RunCommand(checkCommand)
-                    if result {
-                        resultText = "\033[34mFIXED \033[39m"
-                    }
-                }
+			result := RunCommand(checkCommand)
 
-                if !result {
-                    failCount++
-                    resultText = "\033[31mFAILED\033[39m"
-                }
-            }
+			resultText := "\033[32mPASSED\033[39m"
+			if !result {
+				// Audit failed, check if we can remediate
+				if *remediate && AllowRemediation(rule) {
+					// Remediate
+					fixCommand := rule.FixCommand
+					RunCommand(fixCommand)
+					// Check our fix worked
+					result = RunCommand(checkCommand)
+					if result {
+						resultText = "\033[34mFIXED \033[39m"
+					}
+				}
 
-            if !result || !*hidePasses {
-                fmt.Printf("[%s] %s\n", resultText, rule.Title)
-            }
-        }
-    }
-	
+				if !result {
+					failCount++
+					resultText = "\033[31mFAILED\033[39m"
+				}
+			}
+
+			if !result || !*hidePasses {
+				fmt.Printf("[%s] %s\n", resultText, rule.Title)
+			}
+		}
+	}
+
 	// Print summary
 	if !*hideSummary {
 		fmt.Printf("-------------------------------------------------------------------------------\n")
-        fmt.Printf("osxlockdown %s\n", Version)
+		fmt.Printf("osxlockdown %s\n", Version)
 		t := time.Now()
 		fmt.Printf("Date: %s\n", t.Format("2006-01-02T15:04:05-07:00"))
 		sysinfo := GetSystemInfo()
 		fmt.Printf("SerialNumber: %s\nHardwareUUID: %s\n", sysinfo.SerialNumber, sysinfo.HardwareUUID)
 		fmt.Printf("Final Score %d%%; Pass rate: %d/%d\n",
 			CalculateScore(ruleCount, failCount),
-			(ruleCount-failCount), ruleCount)
+			(ruleCount - failCount), ruleCount)
 	}
 }
