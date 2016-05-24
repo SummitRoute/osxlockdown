@@ -13,7 +13,14 @@ import (
 )
 
 // Version of osxlockdown
-var Version = "0.9"
+const Version = "0.9"
+
+// Color-coded messages
+const (
+	PASSED = "\033[32mPASSED\033[39m"
+	FIXED  = "\033[34mFIXED \033[39m"
+	FAILED = "\033[31mFAILED\033[39m"
+)
 
 // ConfigRule is a container for each individual rule
 type ConfigRule struct {
@@ -131,7 +138,7 @@ func main() {
 
 		result := RunCommand(checkCommand)
 
-		resultText := "\033[32mPASSED\033[39m"
+		resultText := PASSED
 		if !result {
 			// Audit failed, check if we can remediate
 			if *remediate && AllowRemediation(rule) {
@@ -141,13 +148,13 @@ func main() {
 				// Check our fix worked
 				result = RunCommand(checkCommand)
 				if result {
-					resultText = "\033[34mFIXED \033[39m"
+					resultText = FIXED
 				}
 			}
 
 			if !result {
 				failCount++
-				resultText = "\033[31mFAILED\033[39m"
+				resultText = FAILED
 			}
 		}
 
