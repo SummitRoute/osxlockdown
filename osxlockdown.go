@@ -36,6 +36,16 @@ func (c ConfigRule) ShouldRemediate() bool {
 	return c.FixCommand != "" && (c.AllowRemediation == nil || *c.AllowRemediation)
 }
 
+// Check returns true if the audit passed, or command was successful
+func (c ConfigRule) Check() bool {
+	return nil == exec.Command("bash", "-c", c.CheckCommand).Run()
+}
+
+// Remediate attempts to run the remediation command
+func (c ConfigRule) Fix() ([]byte, error) {
+	return exec.Command("/bin/bash", "-c", c.FixCommand).CombinedOutput()
+}
+
 // ReadConfigRules reads our yaml file
 func ReadConfigRules(configFile string) ([]ConfigRule, error) {
 	ruleFile, err := ioutil.ReadFile(configFile)
@@ -49,11 +59,6 @@ func ReadConfigRules(configFile string) ([]ConfigRule, error) {
 		return nil, err
 	}
 	return crs, nil
-}
-
-// RunCommand returns true if the audit passed, or command was successful
-func RunCommand(cmd string) bool {
-	return nil == exec.Command("bash", "-c", cmd).Run()
 }
 
 // SystemInfo holds system information
@@ -133,32 +138,29 @@ func main() {
 		if !rule.Enabled {
 			continue
 		}
-		checkCommand := rule.CheckCommand
+		// Note we've found another rule
 		ruleCount++
 
-		result := RunCommand(checkCommand)
-
 		resultText := PASSED
-		if !result {
+		if !rule.Check() {
+			resultText = FAILED
 			// Audit failed, check if we can remediate
 			if *remediate && rule.ShouldRemediate() {
-				// Remediate
-				fixCommand := rule.FixCommand
-				RunCommand(fixCommand)
-				// Check our fix worked
-				result = RunCommand(checkCommand)
-				if result {
+				// Try to remediate
+				rule.Fix()
+				// Check if our fix worked
+				if rule.Check() {
 					resultText = FIXED
 				}
 			}
-
-			if !result {
-				failCount++
-				resultText = FAILED
-			}
 		}
 
-		if !result || !*hidePasses {
+		// Note Failures
+		if FAILED == resultText {
+			failCount++
+		}
+
+		if PASSED != resultText || !*hidePasses {
 			fmt.Printf("[%s] %s\n", resultText, rule.Title)
 		}
 	}
