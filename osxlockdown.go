@@ -127,35 +127,37 @@ func main() {
 	failCount := 0
 
 	for _, rule := range ConfigRules {
-		if rule.Enabled {
-			checkCommand := rule.CheckCommand
-			ruleCount++
+		// Skip disabled rules
+		if !rule.Enabled {
+			continue
+		}
+		checkCommand := rule.CheckCommand
+		ruleCount++
 
-			result := RunCommand(checkCommand)
+		result := RunCommand(checkCommand)
 
-			resultText := "\033[32mPASSED\033[39m"
+		resultText := "\033[32mPASSED\033[39m"
+		if !result {
+			// Audit failed, check if we can remediate
+			if *remediate && AllowRemediation(rule) {
+				// Remediate
+				fixCommand := rule.FixCommand
+				RunCommand(fixCommand)
+				// Check our fix worked
+				result = RunCommand(checkCommand)
+				if result {
+					resultText = "\033[34mFIXED \033[39m"
+				}
+			}
+
 			if !result {
-				// Audit failed, check if we can remediate
-				if *remediate && AllowRemediation(rule) {
-					// Remediate
-					fixCommand := rule.FixCommand
-					RunCommand(fixCommand)
-					// Check our fix worked
-					result = RunCommand(checkCommand)
-					if result {
-						resultText = "\033[34mFIXED \033[39m"
-					}
-				}
-
-				if !result {
-					failCount++
-					resultText = "\033[31mFAILED\033[39m"
-				}
+				failCount++
+				resultText = "\033[31mFAILED\033[39m"
 			}
+		}
 
-			if !result || !*hidePasses {
-				fmt.Printf("[%s] %s\n", resultText, rule.Title)
-			}
+		if !result || !*hidePasses {
+			fmt.Printf("[%s] %s\n", resultText, rule.Title)
 		}
 	}
 
