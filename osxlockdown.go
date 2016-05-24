@@ -118,7 +118,7 @@ func main() {
 		bad = "ERROR: Unsupported OS.  "
 	}
 	if "" != bad {
-		fmt.Fprintf(os.Stderr, "%sThis tool was meant to be used only on OSX 10.11 (El Capitan)", bad)
+		fmt.Fprintf(os.Stderr, "%sThis tool was meant to be used only on OSX 10.11 (El Capitan)\n", bad)
 		return
 	}
 
@@ -126,6 +126,12 @@ func main() {
 	ConfigRules, err := ReadConfigRules(*commandFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to read config file: %v\n", err)
+		return
+	}
+
+	// Make sure we actually have rules
+	if 0 == len(ConfigRules) {
+		fmt.Fprintf(os.Stderr, "No rules found in conig file %v", *commandFile)
 		return
 	}
 
@@ -169,16 +175,20 @@ func main() {
 	if !*hideSummary {
 		fmt.Printf("-------------------------------------------------------------------------------\n")
 		fmt.Printf("osxlockdown %s\n", Version)
-		t := time.Now()
-		fmt.Printf("Date: %s\n", t.Format("2006-01-02T15:04:05-07:00"))
+		fmt.Printf("Date: %s\n", time.Now().Format("2006-01-02T15:04:05-07:00"))
 		sysinfo, err := GetSystemInfo()
 		if nil != err {
 			fmt.Printf("Unable to determine Serial Number or Hardware UUID: %v", err)
 		} else {
 			fmt.Printf("SerialNumber: %s\nHardwareUUID: %s\n", sysinfo.SerialNumber, sysinfo.HardwareUUID)
 		}
-		fmt.Printf("Final Score %d%%; Pass rate: %d/%d\n",
-			CalculateScore(ruleCount, failCount),
-			(ruleCount - failCount), ruleCount)
+		/* Warn user if there was no actual checking */
+		if 0 == ruleCount {
+			fmt.Printf("No enabled rules found in config file %v\n", *commandFile)
+		} else {
+			fmt.Printf("Final Score %d%%; Pass rate: %d/%d\n",
+				CalculateScore(ruleCount, failCount),
+				(ruleCount - failCount), ruleCount)
+		}
 	}
 }
