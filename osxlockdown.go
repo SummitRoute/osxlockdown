@@ -17,9 +17,10 @@ const Version = "0.9"
 
 // Color-coded messages
 const (
-	PASSED = "\033[32mPASSED\033[39m"
-	FIXED  = "\033[34mFIXED \033[39m"
-	FAILED = "\033[31mFAILED\033[39m"
+	PASSED  = "\033[32mPASSED \033[39m"
+	FIXED   = "\033[34mFIXED  \033[39m"
+	FAILED  = "\033[31mFAILED \033[39m"
+	SKIPPED = "\033[33mSKIPPED\033[39m"
 )
 
 // ConfigRule is a container for each individual rule
@@ -36,14 +37,43 @@ func (c ConfigRule) ShouldRemediate() bool {
 	return c.FixCommand != "" && (c.AllowRemediation == nil || *c.AllowRemediation)
 }
 
-// Check returns true if the audit passed, or command was successful
-func (c ConfigRule) Check() bool {
-	return nil == exec.Command("bash", "-c", c.CheckCommand).Run()
+// Check returns true if the audit passed, or command was successful.  If
+// debug is true, it will also print the command, any output, and any errors
+// which may have occurred.
+func (c ConfigRule) Check(debug bool) bool {
+	if debug {
+		fmt.Printf("==> Check: %s", c.CheckCommand)
+	}
+	return c.exec(c.CheckCommand, debug)
+
 }
 
-// Remediate attempts to run the remediation command
-func (c ConfigRule) Fix() ([]byte, error) {
-	return exec.Command("/bin/bash", "-c", c.FixCommand).CombinedOutput()
+// Fix tries to fix the issue, and then rechecks it with recheck.  Debug has
+// the same meaning as for Check().  The value returned is the vaule from
+// Check().
+func (c ConfigRule) Fix(debug bool) bool {
+	if debug {
+		fmt.Printf("==> Fix: %s", c.FixCommand)
+	}
+	c.exec(c.FixCommand, debug)
+	return c.Check(debug)
+}
+
+// exec runs cmd, and returns true if the command executed successfully.  If
+// debug is true, it will also print the command, any output, and any errors
+// which may have occurred
+func (c ConfigRule) exec(cmd string, debug bool) bool {
+	o, err := exec.Command("/bin/bash", "-c", cmd).CombinedOutput()
+	if debug {
+		if 0 != len(o) {
+			fmt.Printf("%s", o)
+		}
+		if nil != err {
+			fmt.Printf("Error: %v\n", err)
+		}
+	}
+	return nil == err
+
 }
 
 // ReadConfigRules reads our yaml file
@@ -99,8 +129,15 @@ func main() {
 	remediate := flag.Bool("remediate", false, "Implements fixes for failed checks. WARNING: Beware this may break things.")
 	version := flag.Bool("version", false, "Prints the script's version and exits")
 	commandFile := flag.String("commands_file", "commands.yaml", "YAML file containing the commands and configuration")
+	debug := flag.Bool("debug", false, "Prints command output and other debugging messages")
 
 	flag.Parse()
+
+	// Debugging output
+	pd := func(string, ...interface{}) (int, error) { return 0, nil }
+	if *debug {
+		pd = fmt.Printf
+	}
 
 	// Print the script's version and exit
 	if *version {
@@ -121,6 +158,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%sThis tool was meant to be used only on OSX 10.11 (El Capitan)\n", bad)
 		return
 	}
+	pd("Correct OS Version detected\n")
 
 	// Read our command/config file
 	ConfigRules, err := ReadConfigRules(*commandFile)
@@ -131,9 +169,10 @@ func main() {
 
 	// Make sure we actually have rules
 	if 0 == len(ConfigRules) {
-		fmt.Fprintf(os.Stderr, "No rules found in conig file %v", *commandFile)
+		fmt.Fprintf(os.Stderr, "No rules found in config file %v", *commandFile)
 		return
 	}
+	pd("Read %v rules from %v", len(ConfigRules), *commandFile)
 
 	// Run commands and print results
 	ruleCount := 0
@@ -142,20 +181,21 @@ func main() {
 	for _, rule := range ConfigRules {
 		// Skip disabled rules
 		if !rule.Enabled {
+			fmt.Printf("[%s] %s\n", SKIPPED, rule.Title)
 			continue
 		}
+		pd("=> %s\n", rule.Title)
+
 		// Note we've found another rule
 		ruleCount++
 
 		resultText := PASSED
-		if !rule.Check() {
+		if !rule.Check(*debug) {
 			resultText = FAILED
 			// Audit failed, check if we can remediate
 			if *remediate && rule.ShouldRemediate() {
 				// Try to remediate
-				rule.Fix()
-				// Check if our fix worked
-				if rule.Check() {
+				if rule.Fix(*debug) {
 					resultText = FIXED
 				}
 			}
