@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -15,29 +14,6 @@ import (
 
 // Version of osxlockdown
 var Version = "0.9"
-
-// ReadFile takes a relative path and returns the bytes in that file
-func ReadFile(filename string) (data []byte, err error) {
-	path, err := filepath.Abs(filename)
-	if err != nil {
-		fmt.Println("ERROR: Unable to file:", filename)
-		return nil, err
-	}
-
-	filehandle, err := os.Open(path)
-	if err != nil {
-		fmt.Println("ERROR: Error opening file:", path)
-		return nil, err
-	}
-	defer filehandle.Close()
-
-	data, err = ioutil.ReadAll(filehandle)
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
-}
 
 // ConfigRules holds our yaml file containing our config
 var ConfigRules ConfigRuleList
@@ -56,7 +32,7 @@ type ConfigRuleList []ConfigRule
 
 // ReadConfigRules reads our yaml file
 func ReadConfigRules(configFile string) error {
-	ruleFile, err := ReadFile(configFile)
+	ruleFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
