@@ -41,12 +41,7 @@ func ReadConfigRules(configFile string) ([]ConfigRule, error) {
 
 // RunCommand returns true if the audit passed, or command was successful
 func RunCommand(cmd string) bool {
-	_, err := exec.Command("bash", "-c", cmd).Output()
-	if err != nil {
-		return false
-	}
-
-	return true
+	return nil == exec.Command("bash", "-c", cmd).Run()
 }
 
 // SystemInfo holds system information
