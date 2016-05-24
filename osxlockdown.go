@@ -86,7 +86,7 @@ type SystemInfo struct {
 
 // GetCommandOutput runs a command and returns it's output
 func GetCommandOutput(cmd string) (string, error) {
-	out, err := exec.Command("bash", "-c", cmd).Output()
+	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	return strings.TrimSpace(string(out)), err
 }
 
