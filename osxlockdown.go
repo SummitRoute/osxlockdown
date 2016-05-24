@@ -147,7 +147,7 @@ func main() {
 	// Read our command/config file
 	err = ReadConfigRules(*commandFile)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Fprintf(os.Stderr, "Unable to read config file: %v\n", err)
 		return
 	}
 
