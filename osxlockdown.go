@@ -85,17 +85,20 @@ type SystemInfo struct {
 }
 
 // GetCommandOutput runs a command and returns it's output
-func GetCommandOutput(cmd string) string {
-	out, _ := exec.Command("bash", "-c", cmd).Output()
-	return strings.TrimSpace(string(out))
+func GetCommandOutput(cmd string) (string, error) {
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	return strings.TrimSpace(string(out)), err
 }
 
 // GetSystemInfo collects information about the system
-func GetSystemInfo() (sysinfo SystemInfo) {
-	sysinfo.SerialNumber = GetCommandOutput("system_profiler SPHardwareDataType | grep \"Serial Number\" | cut -d: -f2")
-	sysinfo.HardwareUUID = GetCommandOutput("system_profiler SPHardwareDataType | grep \"Hardware UUID\" | cut -d: -f2")
-
-	return sysinfo
+func GetSystemInfo() (sysinfo SystemInfo, err error) {
+	if sysinfo.SerialNumber, err = GetCommandOutput("system_profiler SPHardwareDataType | grep \"Serial Number\" | cut -d: -f2"); nil != err {
+		return
+	}
+	if sysinfo.HardwareUUID, err = GetCommandOutput("system_profiler SPHardwareDataType | grep \"Hardware UUID\" | cut -d: -f2"); nil != err {
+		return
+	}
+	return sysinfo, err
 }
 
 // CalculateScore returns the compliance score for this system
@@ -128,14 +131,18 @@ func main() {
 	}
 
 	// Check OS version to make sure we will work
-	osVersion := GetCommandOutput("system_profiler SPSoftwareDataType | grep \"System Version\" | cut -d: -f2")
+	osVersion, err := GetCommandOutput("system_profiler SPSoftwareDataType | grep \"System Version\" | cut -d: -f2")
+	if nil != err {
+		fmt.Fprintf(os.Stderr, "Unable to determine OS Version: %v\nThis tool was meant to be used only on OS X 10.11 (El Capitan)\n", err)
+		return
+	}
 	if !strings.Contains(osVersion, "OS X 10.11") {
 		fmt.Println("ERROR: Unsupported OS. This tool was meant to be used only on OSX 10.11 (El Capitan)")
 		return
 	}
 
 	// Read our command/config file
-	err := ReadConfigRules(*commandFile)
+	err = ReadConfigRules(*commandFile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -184,8 +191,12 @@ func main() {
 		fmt.Printf("osxlockdown %s\n", Version)
 		t := time.Now()
 		fmt.Printf("Date: %s\n", t.Format("2006-01-02T15:04:05-07:00"))
-		sysinfo := GetSystemInfo()
-		fmt.Printf("SerialNumber: %s\nHardwareUUID: %s\n", sysinfo.SerialNumber, sysinfo.HardwareUUID)
+		sysinfo, err := GetSystemInfo()
+		if nil != err {
+			fmt.Printf("Unable to determine Serial Number or Hardware UUID: %v", err)
+		} else {
+			fmt.Printf("SerialNumber: %s\nHardwareUUID: %s\n", sysinfo.SerialNumber, sysinfo.HardwareUUID)
+		}
 		fmt.Printf("Final Score %d%%; Pass rate: %d/%d\n",
 			CalculateScore(ruleCount, failCount),
 			(ruleCount - failCount), ruleCount)
