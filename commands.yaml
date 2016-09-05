@@ -175,27 +175,36 @@
   enabled: true
 
 
-- title: "Enable Firewall"
+- title: "Enable firewall"
   check_command: |
-    test $(defaults read /Library/Preferences/com.apple.alf globalstate) -ge 1
+    /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep "Firewall is enabled"
   fix_command: |
-    defaults write /Library/Preferences/com.apple.alf globalstate -int 1
-  enabled: true
-
-
-- title: "Enable Firewall Stealth Mode"
-  check_command: |
-    /usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep "Stealth mode enabled"
-  fix_command: |
-    /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+    sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
   enabled: true
 
 
 - title: "Disable signed apps from being auto-permitted to listen through firewall"
   check_command: |
-    defaults read /Library/Preferences/com.apple.alf allowsignedenabled | grep 0
+    /usr/libexec/ApplicationFirewall/socketfilterfw --getallowsigned | grep "Automatically allow signed software DISABLED"
   fix_command: |
-    defaults write /Library/Preferences/com.apple.alf allowsignedenabled -bool false
+    sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setallowsigned off
+  enabled: true
+
+
+- title: "Enable firewall stealth mode"
+  check_command: |
+    /usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | grep "Stealth mode enabled"
+  fix_command: |
+    sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
+  enabled: true
+
+
+- title: "Enable firewall logging"
+  check_command: |
+    /usr/libexec/ApplicationFirewall/socketfilterfw --getloggingmode | grep "Log mode is on"
+  fix_command: |
+    sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setloggingmode on
+  comment: "In case of post-pwnege investigation or host-based log management systems"
   enabled: true
 
 
@@ -257,15 +266,6 @@
   fix_command: |
     sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.captive.control Active -bool false
   comment: "For more details see https://github.com/drduh/OS-X-Security-and-Privacy-Guide#captive-portal"
-  enabled: true
-
-
-- title: "Enable logging"
-  check_command: |
-    defaults read /Library/Preferences/com.apple.alf loggingenabled | grep 1
-  fix_command: |
-    sudo defaults write /Library/Preferences/com.apple.alf loggingenabled -bool true
-  comment: "In case of post-pwnege investigation or host-based log management systems"
   enabled: true
 
 
