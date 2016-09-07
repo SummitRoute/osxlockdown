@@ -269,6 +269,13 @@
   enabled: true
 
 
+- title: "Verify that sudo is configured with the tty_tickets flag"
+  check_command: |
+    sudo cat /etc/sudoers | egrep '^Defaults.*\s+tty_tickets'
+  comment: "Enforce the tty_tickets flag to limit the sudo session timeout to the same TTY session. For a justification, see: https://www.stigviewer.com/stig/apple_os_x_10.9_mavericks_workstation/2015-02-26/finding/V-58415"
+  enabled: true
+
+
 - title: "Verify no HTTP update URLs for Sparkle Updater"
   check_command: |
     for i in /Applications/*/Contents/Info.plist; do URL=$(defaults read "$i" SUFeedURL 2>/dev/null | grep "http://"); if [ -n "$URL" ]; then exit 1; fi; done; exit 0
