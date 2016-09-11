@@ -1,3 +1,6 @@
+# Project deprecated
+**This project is no longer being maintained. Please consider using https://github.com/kristovatlas/osx-config-check**
+
 # osxlockdown
 osxlockdown was built to audit, and remediate, security configuration settings on OS X 10.11 (El Capitan).  
 
