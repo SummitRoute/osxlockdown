@@ -213,7 +213,7 @@
     if [ -n "$(security authorizationdb read system.preferences 2> /dev/null | grep -A1 shared | grep -E '(true|false)' | grep 'false')" ]; then exit 0; fi; exit 1
   fix_command: |
     security authorizationdb read system.preferences > /tmp/system.preferences.plist &&/usr/libexec/PlistBuddy -c "Set :shared false" /tmp/system.preferences.plist && security authorizationdb write system.preferences < /tmp/system.preferences.plist
-  enabled: true
+  enabled: false
 
 
 - title: "Disable IPv6"
